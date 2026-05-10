@@ -6,22 +6,17 @@ on:
       - feature/full-stack
     paths:
       - 'Server/**'
+      - '.github/workflows/backend-deploy.yml'
 
 jobs:
-  deploy:
+  deploy-server-1:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        host:
-          - ${{ secrets.EC2_HOST_1 }}
-          - ${{ secrets.EC2_HOST_2 }}
-
     steps:
-      - name: Deploy to Backend EC2
+      - name: Deploy to EC2 Server 1
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ matrix.host }}
+          host: ${{ secrets.EC2_HOST_1 }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
@@ -33,4 +28,25 @@ jobs:
 
             go build -o app .
 
-            sudo systemctl restart muchtodox
+            sudo systemctl restart muchtodo
+
+  deploy-server-2:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2 Server 2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST_2 }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ec2-user/much-to-do
+
+            git pull origin feature/full-stack
+
+            cd Server/MuchToDo
+
+            go build -o app .
+
+            sudo systemctl restart muchtodo
